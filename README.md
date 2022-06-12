@@ -15,6 +15,7 @@
     - [Produzindo algumas mensagens](#produzindo-algumas-mensagens)
     - [Lendo algumas mensagens](#lendo-algumas-mensagens)
     - [Brincando um pouquinho com o Kafka](#brincando-um-pouquinho-com-o-Kafka)
+- [Conclusão](#conclusão) 
   
   
 
@@ -111,5 +112,8 @@ $ docker exec --interactive --tty broker \
 kafka-console-producer --bootstrap-server broker:9092 \
                        --topic new_topic
  ```
- Iremos perceber que cada membro do consumer group está lendo de uma partição específica. Podemos ir além e subir um 4º membro para esse grupo e perceberemos também que ele ficará ocioso, pois cada membro só pode ler 1 partição do tópico.
- 
+ Iremos perceber que cada membro do consumer group está lendo de uma partição específica. Podemos ir além e subir um 4º membro para esse grupo e perceberemos também que ele ficará ocioso, pois cada membro só pode ler uma partição do tópico.
+
+# Conclusão
+ Depois de tudo que foi dito concluimos que o **Kafka** é um sistema de mensageria que traz a proposta de unir o melhor dos modelos tradicionais de fila e publish-subscribe, permitindo a escalabilidade do processamento de mensagens do primeiro e a distribuição em massa das mensagens do segundo.
+ Vale ressaltar que o kafka é uma ferramenta muito poderosa e não é indicado para aplicações simples, pois existe uma curva de aprendizado considerável e uma complexidade nas configurações.
