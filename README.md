@@ -16,12 +16,9 @@
     - [Lendo algumas mensagens](#lendo-algumas-mensagens)
     - [Brincando um pouquinho com o Kafka](#brincando-um-pouquinho-com-o-Kafka)
 - [Conclusão](#conclusão) 
-  
-  
-
 
 # Requisitos
-- Docker instalado na máquina
+- Docker instalado na máquina (Veja como fazer o download: https://docs.docker.com/get-docker/)
 
 # Objetivo
   O objetivo deste tutorial é trazer conceitos importantes acerca de kafka, e uma demonstração simples da sua utilização.
