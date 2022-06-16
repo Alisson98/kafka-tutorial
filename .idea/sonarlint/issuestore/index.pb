@@ -19,5 +19,3 @@ l
 ]microservicos/consumer/src/main/java/br/com/unesp/soo/kafka/consumer/ConsumerApplication.java,b\2\b20d097888e976aaeb1b407460fae8eeecebef75
 N
 microservicos/consumer/pom.xml,3\9\393cd75593de12d07ad07608845dbe423cdc97b1
-N
-microservicos/producer/pom.xml,0\e\0e3c3c9bfca07d7a599df153bbb6ff280ced0522

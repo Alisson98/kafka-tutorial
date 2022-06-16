@@ -2,7 +2,7 @@
 
 - [Requisitos](#requisitos)
 - [Objetivo](#objetivo)
-- [O que é Apache kafka?](#O-que-é-apache-kafka-?)
+- [O que é Apache kafka?](#O-que-é-apache-kafka-)
   - [Broker e Cluster](#broker-e-cluster)
   - [Mensagens](#mensagens)
     - [Tópicos](#tópicos)
@@ -15,10 +15,21 @@
     - [Produzindo algumas mensagens](#produzindo-algumas-mensagens)
     - [Lendo algumas mensagens](#lendo-algumas-mensagens)
     - [Brincando um pouquinho com o Kafka](#brincando-um-pouquinho-com-o-Kafka)
+- [Integrando Kafka com SpringBoot](#integrando-kafka-com-springboot)
+  - [Como Utilizar kafka no SpringBoot](#como-utilizar-kafka-no-springBoot)
+  - [Criando as classes do microserviço Producer](#criando-as-classes-do-microserviço-producer)
+    - [TopicProducer](#TopicProducer)
+    - [MessageControler](#MessageControler)
+    - [ Enviando algumas mensagens pelo microserviço](#enviando-algumas-mensagens-pelo-microserviço)
+  - [Criando as classes do microserviço Consumer](#criando-as-classes-do-microserviço-consumer) 
+    - [TopicListener](#TopicListener)
+    - [Lendo as mensagens pelo microserviço consumer](#lendo-as-mensagens-pelo-microserviço-consumer)
 - [Conclusão](#conclusão) 
 
 # Requisitos
 - Docker instalado na máquina (Veja como fazer o download: https://docs.docker.com/get-docker/)
+- Java 11 (Veja como fazer download: [java11](https://www.oracle.com/br/java/technologies/javase/jdk11-archive-downloads.html))
+- Gerenciador de depedência Maven
 
 # Objetivo
   O objetivo deste tutorial é trazer conceitos importantes acerca de kafka, e uma demonstração simples da sua utilização.
@@ -111,6 +122,103 @@ kafka-console-producer --bootstrap-server broker:9092 \
  ```
  Iremos perceber que cada membro do consumer group está lendo de uma partição específica. Podemos ir além e subir um 4º membro para esse grupo e perceberemos também que ele ficará ocioso, pois cada membro só pode ler uma partição do tópico.
 
+# Integrando Kafka com SpringBoot
+ Nessa parte do tutorial iremos utilizar o kafka juntamente com **SpringBoot**. Para isso foram construídos dois microserviços, um producer e um consumer.
+ ### Como Utilizar kafka no SpringBoot
+ No arquivo ```pom.xml```, é possível integrar com o Kafka através de bibliotecas criadas para o ecossistema Spring Boot:
+ ```
+ <dependency>
+	<groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+ </dependency>
+ ```
+ ### Criando as classes do microserviço Producer
+ Para esse tutorial, iremos exemplificar com um endpoint que será responsável por enviar mensangens para um tópico.
+ Nossa estrutura de classes ficará:
+```
+├── controller
+│   └── MessageControler.java
+├── service
+│   └── TopicProducer.java
+├── ProducerApplication.java
+```
+- A classe `MessageControler` ficará responsável por expor um endpoint.
+- A classe `TopicProducer` é a classe que faz a configuração de como a mensagem será enviada para o tópico.
+- A classe `ProducerApplication` é a classe principal que executará o framework.
+### TopicProducer
+```java
+@Service
+@RequiredArgsConstructor
+public class TopicProducer {
+
+    private static final Logger logger = LoggerFactory.getLogger(TopicProducer.class);
+
+    @Value("${topic.name.producer}")
+    private String topicName;
+
+    private final KafkaTemplate<String, String> kafkaTemplate;
+
+    public void send(String message) {
+        logger.info("Payload enviado: {}", message);
+        kafkaTemplate.send(topicName, message);
+    }
+}
+```
+KafkaTemplate é a classe que faz o envio de mensagens para os tópicos, o primeiro String é o tópico e o segundo o tipo de informação.
+
+ ### MessageControler
+```java
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("/kafka")
+public class MessageControler {
+  private final TopicProducer topicProducer;
+  @PostMapping("/send")
+  public ResponseEntity<String> send(@RequestBody String message){
+
+    topicProducer.send(message);
+    return ResponseEntity.ok().body("Message sent successfully: " + message);
+  }
+}
+```
+ ### Enviando algumas mensagens pelo microserviço
+ Para produzir algumas mensagens iremos utilizar o Postman: \
+ ![Postman producer](img/Postman1.png)
+ Após criarmos produzirmos algumas mensagens podemos observar no **Kafdrop**: \
+ ![Kafdrop producer](img/Kafdrop_1.png) \
+ ### Criando as classes do microserviço Consumer
+ No consumer, iremos exemplificar subindo um microserviço para consumir as mensagens.
+ Nossa estrutura de classes ficará:
+```
+├── service
+│   └── TopicListener.java
+├── ProducerApplication.java
+```
+### TopicListener
+```java
+@Service
+@RequiredArgsConstructor
+public class TopicListener {
+
+    private static final Logger logger = LoggerFactory.getLogger(TopicListener.class);
+
+    @Value("${topic.name.consumer}")
+    private String topicName;
+
+    @KafkaListener(topics = "${topic.name.consumer}", groupId = "group_id")
+    public void consume(ConsumerRecord<String, String> payload){
+        logger.info("Topic: {}", topicName);
+        logger.info("key: {}", payload.key());
+        logger.info("Headers: {}", payload.headers());
+        logger.info("Partion: {}", payload.partition());
+        logger.info("Order: {}", payload.value());
+    }
+}
+```
+ Está bem simples, a anotação ```“@KafkaListener”``` permite conexão com um tópico para o recebimento de mensagens.
+ ### Lendo as mensagens pelo microserviço consumer
+ ![Consumer](img/Consumer_1.png)
+
 # Conclusão
- Depois de tudo que foi dito concluimos que o **Kafka** é um sistema de mensageria que traz a proposta de unir o melhor dos modelos tradicionais de fila e publish-subscribe, permitindo a escalabilidade do processamento de mensagens do primeiro e a distribuição em massa das mensagens do segundo.
- Vale ressaltar que o kafka é uma ferramenta muito poderosa e não é indicado para aplicações simples, pois existe uma curva de aprendizado considerável e uma complexidade nas configurações.
+Depois de tudo que foi dito concluimos que o **Kafka** é um sistema de mensageria que traz a proposta de unir o melhor dos modelos tradicionais de fila e publish-subscribe, permitindo a escalabilidade do processamento de mensagens do primeiro e a distribuição em massa das mensagens do segundo.
+Vale ressaltar que o kafka é uma ferramenta muito poderosa e não é indicado para aplicações simples, pois existe uma curva de aprendizado considerável e uma complexidade nas configurações.
