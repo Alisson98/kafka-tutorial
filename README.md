@@ -84,7 +84,7 @@ kafka-topics --bootstrap-server broker:9092 \
 ```bash
 $ docker exec --interactive --tty broker \
 kafka-console-producer --bootstrap-server broker:9092 \
-                       --topic quickstart
+                       --topic my_first_topic
  ```
 
 ### Lendo algumas mensagens
@@ -92,7 +92,7 @@ kafka-console-producer --bootstrap-server broker:9092 \
   ```bash
 $ docker exec --interactive --tty broker \
 kafka-console-consumer --bootstrap-server broker:9092 \
-                       --topic quickstart \
+                       --topic my_first_topic \
                        --from-beginning
  ```
 ### Brincando um pouquinho com o Kafka
